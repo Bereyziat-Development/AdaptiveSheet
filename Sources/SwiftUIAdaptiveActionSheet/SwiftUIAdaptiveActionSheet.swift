@@ -4,7 +4,7 @@ import SwiftUI
 extension View {
     public func adaptiveHeightSheet<Content: View>(isPresented: Binding<Bool>, onDismiss: (() -> Void)? = nil, @ViewBuilder content: @escaping () -> Content) -> some View {
         
-        return fullScreenCover(isPresented: isPresented) {
+        return fullScreenCover(isPresented: isPresented, onDismiss: onDismiss) {
             AdapatativeSheetView(content: content)
                 .background(TransparentView())
                     }
