@@ -9,10 +9,12 @@ import Foundation
 
 import SwiftUI
 
+@available(iOS 15, *)
 private struct AdaptiveDismissKey: EnvironmentKey {
     static let defaultValue: () -> Void = {}
 }
 
+@available(iOS 15, *)
 extension EnvironmentValues {
     var adaptiveDismiss: () -> Void {
         get { self[AdaptiveDismissKey.self] }
@@ -20,6 +22,7 @@ extension EnvironmentValues {
     }
 }
 
+@available(iOS 15, *)
 struct AdaptiveDismissModifier: ViewModifier {
     let dismissAction: () -> Void
 
@@ -29,6 +32,7 @@ struct AdaptiveDismissModifier: ViewModifier {
     }
 }
 
+@available(iOS 15, *)
 extension View {
     func adaptiveDismissHandler(dismissAction: @escaping () -> Void) -> some View {
         self.modifier(AdaptiveDismissModifier(dismissAction: dismissAction))

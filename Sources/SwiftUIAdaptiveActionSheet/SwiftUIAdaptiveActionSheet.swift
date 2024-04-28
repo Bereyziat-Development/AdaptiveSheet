@@ -2,10 +2,12 @@ import SwiftUI
 
 @available(iOS 15, *)
 public extension View {
-    func adaptiveHeightSheet<Content: View>(
+    func adaptiveHeightSheet<Content: View, Background: ShapeStyle>(
         isPresented: Binding<Bool>,
         onDismiss: (() -> Void)? = nil,
-        sheetBackgroundColor: Color = .white,
+        sheetBackground: Background = Color(UIColor.systemBackground),
+        backgroundOpacity: CGFloat = 0.6,
+        shadow: Bool = true,
         @ViewBuilder content: @escaping () -> Content
     ) -> some View {
         return fullScreenCover(
@@ -13,8 +15,10 @@ public extension View {
             onDismiss: onDismiss
         ) {
             AdapatativeSheetView(
-                sheetBackgroundColor: sheetBackgroundColor,
                 isPresented: isPresented,
+                sheetBackground: sheetBackground,
+                backgroundOpacity: backgroundOpacity,
+                shadow: shadow,
                 content: content
             )
             .background(TransparentView())
@@ -23,38 +27,47 @@ public extension View {
 }
 
 @available(iOS 15, *)
-public struct AdapatativeSheetView<Content: View>: View {
+public struct AdapatativeSheetView<Content: View, Background: ShapeStyle>: View {
     @Environment(\.adaptiveDismiss) private var adaptiveDismiss
     @Environment(\.dismiss) private var dismiss
     @ViewBuilder private var content: () -> Content
     @Binding private var isPresented: Bool
-    private var sheetBackgroundColor: Color
-    private var backgroundOpacity: CGFloat = 0.6
-    @State private var bottomHiddenPadding: CGFloat = 0
+    private var sheetBackground: Background
+    private var backgroundOpacity: CGFloat
+    private var shadow: Bool
+    @State private var bottomPadding: CGFloat = 80
     @State private var opacity: CGFloat = 0.0
     @State private var offset: CGFloat = 0.0
     @State private var isContentDisplayed: Bool = false
-    
-    //MARK: Constants
-    private let maxAllowedUpwardOffset: CGFloat = 50
+
+    // MARK: Constants
+
+    private let initialBottomPadding: CGFloat = 80
     private let minTranslationToDismiss: CGFloat = 200
-    
+
     public init(
-        sheetBackgroundColor: Color = .white,
         isPresented: Binding<Bool>,
+        sheetBackground: Background = Color(UIColor.systemBackground),
+        backgroundOpacity: CGFloat = 0.6,
+        shadow: Bool = true,
         @ViewBuilder content: @escaping () -> Content
     ) {
         self._isPresented = isPresented
-        self.sheetBackgroundColor = sheetBackgroundColor
+        self.sheetBackground = sheetBackground
+        self.backgroundOpacity = backgroundOpacity
+        self.shadow = shadow
         self.content = content
     }
-    
+
     public var body: some View {
         ZStack {
             Color(.black)
                 .opacity(opacity)
                 .ignoresSafeArea()
-                .frame(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+                .frame(
+                    maxWidth: .infinity,
+                    maxHeight: .infinity
+                )
                 .onTapGesture {
                     animatedDismiss()
                 }
@@ -63,16 +76,28 @@ public struct AdapatativeSheetView<Content: View>: View {
                 if isContentDisplayed {
                     content()
                         .frame(maxWidth: .infinity)
-                        .padding(.bottom, 40)
-                        .padding(.top, 20)
-                        .padding(.bottom, bottomHiddenPadding)
-                        .background(Rectangle()
-                            .fill(sheetBackgroundColor)
-                            .frame(maxWidth: .infinity)
-                            .clipShape(RoundedCorner(radius: 20, corners: [.topLeft, .topRight]))
+                        .padding(.bottom, bottomPadding)
+                        .padding(.vertical, 20)
+                        .background(
+                            Rectangle()
+                                .fill(sheetBackground)
+                                .frame(maxWidth: .infinity)
+                                .clipShape(
+                                    RoundedCorner(
+                                        radius: 20,
+                                        corners: [.topLeft, .topRight]
+                                    )
+                                )
+                                .shadow(
+                                    color: .black.opacity(
+                                        shadow ? 0.2 : 0
+                                    ),
+                                    radius: 15,
+                                    x: 0, y: 4
+                                )
                         )
                         .transition(.move(edge: .bottom))
-                        .offset(y: bottomHiddenPadding)
+                        .offset(y: bottomPadding)
                         .offset(y: offset)
                 }
             }
@@ -82,39 +107,37 @@ public struct AdapatativeSheetView<Content: View>: View {
         }
         .gesture(
             DragGesture()
-            .onChanged {
-                if $0.translation.height > 0 {
-                    offset = $0.translation.height
-                } else {
-                    offset = $0.translation.height/sqrt(-$0.translation.height)
-                }
-                if offset < 0 {
-                    bottomHiddenPadding = -offset + 10
-                }
-            }
-            .onEnded { value in
-                if value.translation.height > minTranslationToDismiss {
-                    animatedDismiss()
-                } else {
-                    withAnimation(.spring(response: 0.5)) {
-                        offset = 0.0
+                .onChanged {
+                    if $0.translation.height >= 0 {
+                        offset = $0.translation.height
+                    } else {
+                        offset = $0.translation.height / sqrt(-$0.translation.height)
+                    }
+                    if offset < 0 {
+                        bottomPadding = -offset + initialBottomPadding
                     }
                 }
-            })
+                .onEnded { value in
+                    if value.translation.height > minTranslationToDismiss {
+                        animatedDismiss()
+                    } else {
+                        withAnimation(.spring(response: 0.5)) {
+                            offset = 0.0
+                        }
+                    }
+                })
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 withAnimation(.easeInOut(duration: 0.5)) {
                     opacity = backgroundOpacity
                 }
             }
-        }
-        .onAppear {
-            withAnimation(.spring(response: 0.6)) {
+            withAnimation(.spring(response: 0.8)) {
                 isContentDisplayed.toggle()
             }
-            offset = 0.0
         }
     }
+
     private func animatedDismiss() {
         withAnimation(.easeInOut(duration: 0.5)) {
             opacity = 0.0
@@ -137,48 +160,38 @@ private struct TransparentView: UIViewRepresentable {
         }
         return view
     }
-    
+
     func updateUIView(_ uiView: UIView, context: Context) {}
 }
 
-// EXAMPLE
-
+//MARK: Example
 @available(iOS 15, *)
 private struct ExampleBody: View {
-    @Environment(\.dismiss) private var dismiss
     @Environment(\.adaptiveDismiss) private var adaptiveDismiss
     var body: some View {
         VStack(alignment: .leading) {
             Button("Close") {
                 adaptiveDismiss()
-//                dismiss()
             }
             Text("And a bit of text for this view")
-            Text("And a bit more text to verify if the size of the view adapts to the conent")
-            Text("And a bit more text to verify if the size of the view adapts to the conent")
-            Text("And a bit more text to verify if the size of the view adapts to the conent")
-            Text("And a bit more text to verify if the size of the view adapts to the conent")
-            Text("And a bit more text to verify if the size of the view adapts to the conent")
-            Text("And a bit more text to verify if the size of the view adapts to the conent")
-            Text("And a bit more text to verify if the size of the view adapts to the conent")
-            Text("And a bit more text to verify if the size of the view adapts to the conent")
-            Text("And a bit more text to verify if the size of the view adapts to the conent")
-            Text("And a bit more text to verify if the size of the view adapts to the conent")
-            Text("And a bit more text to verify if the size of the view adapts to the conent")
-            Text("And a bit more text to verify if the size of the view adapts to the conent")
-            
+            Text("And a bit more text to verify if the size of the view adapts to the content")
+            Text("And a bit more text to verify if the size of the view adapts to the content")
+            Text("And a bit more text to verify if the size of the view adapts to the content")
+            Text("And a bit more text to verify if the size of the view adapts to the content")
+            Text("And a bit more text to verify if the size of the view adapts to the content")
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 40)
         .padding(.top, 20)
     }
 }
+
 @available(iOS 15, *)
 private struct ExampleView: View {
     @State var showCover = false
     @State var showCoverWithBackground = false
     @State var showNativeSheet = false
-    
+
     var body: some View {
         VStack {
             Button("Open sheet") {
@@ -197,7 +210,17 @@ private struct ExampleView: View {
         .sheet(isPresented: $showNativeSheet) {
             Text("Nice sheet but we can do better 😉")
         }
-        .adaptiveHeightSheet(isPresented: $showCover) {
+        .adaptiveHeightSheet(
+            isPresented: $showCover,
+            sheetBackground: Material.ultraThinMaterial,
+            backgroundOpacity: 0.0,
+            shadow: false
+        ) {
+            ExampleBody()
+        }
+        .adaptiveHeightSheet(
+            isPresented: $showCoverWithBackground
+        ) {
             ExampleBody()
         }
     }
