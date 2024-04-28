@@ -12,16 +12,22 @@ public extension View {
             isPresented: isPresented,
             onDismiss: onDismiss
         ) {
-            AdapatativeSheetView(sheetBackgroundColor: sheetBackgroundColor, content: content)
-                .background(TransparentView())
+            AdapatativeSheetView(
+                sheetBackgroundColor: sheetBackgroundColor,
+                isPresented: isPresented,
+                content: content
+            )
+            .background(TransparentView())
         }
     }
 }
 
 @available(iOS 15, *)
 public struct AdapatativeSheetView<Content: View>: View {
+    @Environment(\.adaptiveDismiss) private var adaptiveDismiss
     @Environment(\.dismiss) private var dismiss
-    @ViewBuilder var content: () -> Content
+    @ViewBuilder private var content: () -> Content
+    @Binding private var isPresented: Bool
     private var sheetBackgroundColor: Color
     private var backgroundOpacity: CGFloat = 0.6
     @State private var bottomHiddenPadding: CGFloat = 0
@@ -33,7 +39,12 @@ public struct AdapatativeSheetView<Content: View>: View {
     private let maxAllowedUpwardOffset: CGFloat = 50
     private let minTranslationToDismiss: CGFloat = 200
     
-    public init(sheetBackgroundColor: Color = .white, @ViewBuilder content: @escaping () -> Content) {
+    public init(
+        sheetBackgroundColor: Color = .white,
+        isPresented: Binding<Bool>,
+        @ViewBuilder content: @escaping () -> Content
+    ) {
+        self._isPresented = isPresented
         self.sheetBackgroundColor = sheetBackgroundColor
         self.content = content
     }
@@ -65,6 +76,9 @@ public struct AdapatativeSheetView<Content: View>: View {
                         .offset(y: offset)
                 }
             }
+        }
+        .adaptiveDismissHandler {
+            animatedDismiss()
         }
         .gesture(
             DragGesture()
@@ -132,10 +146,12 @@ private struct TransparentView: UIViewRepresentable {
 @available(iOS 15, *)
 private struct ExampleBody: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.adaptiveDismiss) private var adaptiveDismiss
     var body: some View {
         VStack(alignment: .leading) {
             Button("Close") {
-                dismiss()
+                adaptiveDismiss()
+//                dismiss()
             }
             Text("And a bit of text for this view")
             Text("And a bit more text to verify if the size of the view adapts to the conent")
