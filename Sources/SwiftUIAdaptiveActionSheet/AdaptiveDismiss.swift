@@ -10,12 +10,12 @@ import Foundation
 import SwiftUI
 
 @available(iOS 15, *)
-private struct AdaptiveDismissKey: EnvironmentKey {
+struct AdaptiveDismissKey: EnvironmentKey {
     static let defaultValue: () -> Void = {}
 }
 
 @available(iOS 15, *)
-extension EnvironmentValues {
+public extension EnvironmentValues {
     var adaptiveDismiss: () -> Void {
         get { self[AdaptiveDismissKey.self] }
         set { self[AdaptiveDismissKey.self] = newValue }
