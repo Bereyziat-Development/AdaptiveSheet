@@ -1,18 +1,15 @@
-# SwiftUIAdaptiveActionSheet
+# AdaptiveSheet
 
-A custom SwiftUI component that provides an adaptive action sheet behavior similar to the native iOS action sheet.
-
+AdaptiveSheet provides with a navigation sheet which height adapts to its content. The AdaptiveSheet aims to provie with a similar behavior to the native SwiftUI sheet or fullscreenCover.
 
 
 ## Features
 
 
-![Simulator Screen Recording - iPhone 14 Pro - 2023-05-26 at 15 10 56](https://github.com/Bereyziat-Development/SwiftUIAdaptiveActionSheet/assets/101000022/6b389a8e-b39c-443c-8fe7-4572d4b1a15e)
+![Simulator Screen Recording - iPhone 14 Pro - 2023-05-26 at 15 10 56](https://github.com/Bereyziat-Development/AdaptiveSheet/assets/101000022/6b389a8e-b39c-443c-8fe7-4572d4b1a15e)
 
 
-
-- Adaptive action sheet behavior based on iOS 15 or later
-- Fullscreen cover presentation for older iOS versions
+- Adaptive sheet behavior based on iOS 15 or later
 - Customizable appearance and behavior
 
 ## Requirements
@@ -24,19 +21,19 @@ A custom SwiftUI component that provides an adaptive action sheet behavior simil
 
 ### Swift Package Manager
 
-To install the SwiftUIAdaptiveActionSheet library using Swift Package Manager, follow these steps:
+To install the AdaptiveSheet library using Swift Package Manager, follow these steps:
 
 1. In Xcode, open your project.
 2. Go to **File** > **Swift Packages** > **Add Package Dependency**.
-3. Enter the repository URL: `https://github.com/Bereyziat-Development/SwiftUIAdaptiveActionSheet`.
+3. Enter the repository URL: `https://github.com/Bereyziat-Development/AdaptiveSheet`.
 4. Click **Next** and follow the remaining steps to add the package to your project.
 
 ## Usage
 
-1. Import the SwiftUIAdaptiveActionSheet library in your SwiftUI view:
+1. Import the AdaptiveSheet library in your SwiftUI view:
 
 ```swift
-import SwiftUIAdaptiveActionSheet
+import AdaptiveSheet
 
 struct ContentView: View {
     @State private var showActionSheet = false
@@ -55,7 +52,7 @@ struct ContentView: View {
 
 2. Customization
 
-The SwiftUIAdaptiveActionSheet component provides various customization options. You can modify the appearance and behavior using the available properties and modifiers.
+The AdaptiveSheet component provides various customization options. You can modify the appearance and behavior using the available properties and modifiers.
 
 Example
 Here's an example of customizing the component:
@@ -74,5 +71,7 @@ Button("Show Action Sheet") {
 .foregroundColor(.white)
 .cornerRadius(10)
 ```
+
+Important
 ## License
 This library is available under the MIT license. See the LICENSE file for more information.

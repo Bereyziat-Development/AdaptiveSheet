@@ -2,7 +2,7 @@ import SwiftUI
 
 @available(iOS 15, *)
 public extension View {
-    func adaptiveHeightSheet<Content: View, Background: ShapeStyle>(
+    func adaptiveSheet<Content: View, Background: ShapeStyle>(
         isPresented: Binding<Bool>,
         onDismiss: (() -> Void)? = nil,
         sheetBackground: Background = Color(UIColor.systemBackground),
@@ -38,7 +38,8 @@ public struct AdapatativeSheetView<Content: View, Background: ShapeStyle>: View 
     @State private var bottomPadding: CGFloat = 80
     @State private var opacity: CGFloat = 0.0
     @State private var offset: CGFloat = 0.0
-    @State private var isContentDisplayed: Bool = false
+    @State private var isContentDisplayed = false
+    @State private var isDismissing = false
 
     // MARK: Constants
 
@@ -139,6 +140,9 @@ public struct AdapatativeSheetView<Content: View, Background: ShapeStyle>: View 
     }
 
     private func animatedDismiss() {
+        //Make sure that the animation cannot get triggered twice
+        guard !isDismissing else { return }
+        isDismissing = true
         withAnimation(.easeInOut(duration: 0.5)) {
             opacity = 0.0
         }
@@ -210,7 +214,7 @@ private struct ExampleView: View {
         .sheet(isPresented: $showNativeSheet) {
             Text("Nice sheet but we can do better 😉")
         }
-        .adaptiveHeightSheet(
+        .adaptiveSheet(
             isPresented: $showCover,
             sheetBackground: Material.ultraThinMaterial,
             backgroundOpacity: 0.0,
@@ -218,7 +222,7 @@ private struct ExampleView: View {
         ) {
             ExampleBody()
         }
-        .adaptiveHeightSheet(
+        .adaptiveSheet(
             isPresented: $showCoverWithBackground
         ) {
             ExampleBody()

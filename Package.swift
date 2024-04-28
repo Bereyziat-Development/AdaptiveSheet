@@ -4,16 +4,16 @@
 import PackageDescription
 
 let package = Package(
-    name: "SwiftUIAdaptiveActionSheet",
+    name: "AdaptiveSheet",
     platforms: [.iOS(.v15)],
     products: [
         .library(
-            name: "SwiftUIAdaptiveActionSheet",
-            targets: ["SwiftUIAdaptiveActionSheet"]),
+            name: "AdaptiveSheet",
+            targets: ["AdaptiveSheet"]),
     ],
     targets: [
         .target(
-            name: "SwiftUIAdaptiveActionSheet"),
+            name: "AdaptiveSheet"),
     ]
 )
 
