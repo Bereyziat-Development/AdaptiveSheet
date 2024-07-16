@@ -35,17 +35,18 @@ public struct AdapatativeSheetView<Content: View, Background: ShapeStyle>: View 
     private var sheetBackground: Background
     private var backgroundOpacity: CGFloat
     private var shadow: Bool
-    @State private var bottomPadding: CGFloat = 80
+    @State private var bottomPadding: CGFloat = 60
     @State private var opacity: CGFloat = 0.0
     @State private var offset: CGFloat = 0.0
     @State private var isContentDisplayed = false
     @State private var isDismissing = false
-
+    
     // MARK: Constants
-
-    private let initialBottomPadding: CGFloat = 80
+    
+    private let initialBottomPadding: CGFloat = 60
+    //TODO: Make this dependend on the height of the content
     private let minTranslationToDismiss: CGFloat = 200
-
+    
     public init(
         isPresented: Binding<Bool>,
         sheetBackground: Background = Color(UIColor.systemBackground),
@@ -59,7 +60,7 @@ public struct AdapatativeSheetView<Content: View, Background: ShapeStyle>: View 
         self.shadow = shadow
         self.content = content
     }
-
+    
     public var body: some View {
         ZStack {
             Color(.black)
@@ -78,7 +79,6 @@ public struct AdapatativeSheetView<Content: View, Background: ShapeStyle>: View 
                     content()
                         .frame(maxWidth: .infinity)
                         .padding(.bottom, bottomPadding)
-                        .padding(.vertical, 20)
                         .background(
                             Rectangle()
                                 .fill(sheetBackground)
@@ -102,6 +102,7 @@ public struct AdapatativeSheetView<Content: View, Background: ShapeStyle>: View 
                         .offset(y: offset)
                 }
             }
+            .ignoresSafeArea()
         }
         .adaptiveDismissHandler {
             animatedDismiss()
@@ -109,14 +110,14 @@ public struct AdapatativeSheetView<Content: View, Background: ShapeStyle>: View 
         .gesture(
             DragGesture()
                 .onChanged {
-                    if $0.translation.height >= 0 {
-                        offset = $0.translation.height
+                    let tH = $0.translation.height
+                    if tH >= 0 {
+                        offset = tH
                     } else {
-                        offset = $0.translation.height / sqrt(-$0.translation.height)
+                        print(tH)
+                        offset = tH / sqrt(-tH)
                     }
-                    if offset < 0 {
-                        bottomPadding = -offset + initialBottomPadding
-                    }
+                    //TODO: Lock the top of the screen bellow the dynamic island/notch
                 }
                 .onEnded { value in
                     if value.translation.height > minTranslationToDismiss {
@@ -126,7 +127,8 @@ public struct AdapatativeSheetView<Content: View, Background: ShapeStyle>: View 
                             offset = 0.0
                         }
                     }
-                })
+                }
+        )
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 withAnimation(.easeInOut(duration: 0.5)) {
@@ -138,7 +140,7 @@ public struct AdapatativeSheetView<Content: View, Background: ShapeStyle>: View 
             }
         }
     }
-
+    
     private func animatedDismiss() {
         //Make sure that the animation cannot get triggered twice
         guard !isDismissing else { return }
@@ -164,7 +166,7 @@ private struct TransparentView: UIViewRepresentable {
         }
         return view
     }
-
+    
     func updateUIView(_ uiView: UIView, context: Context) {}
 }
 
@@ -195,7 +197,7 @@ private struct ExampleView: View {
     @State var showCover = false
     @State var showCoverWithBackground = false
     @State var showNativeSheet = false
-
+    
     var body: some View {
         VStack {
             Button("Open sheet") {
@@ -216,7 +218,7 @@ private struct ExampleView: View {
         }
         .adaptiveSheet(
             isPresented: $showCover,
-            sheetBackground: Material.ultraThinMaterial,
+            sheetBackground: Color.purple.opacity(0.6),
             backgroundOpacity: 0.0,
             shadow: false
         ) {
